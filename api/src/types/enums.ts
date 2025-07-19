@@ -16,7 +16,6 @@ export enum MealInputType {
 
 export enum MealStatus {
   UPLOADING = 'uploading',
-  QUEUED = 'queued',
   PROCESSING = 'processing',
   SUCCESS = 'success',
   FAILED = 'failed',

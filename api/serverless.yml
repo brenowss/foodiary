@@ -84,6 +84,12 @@ functions:
           event: s3:ObjectCreated:*
           existing: true
           forceDeploy: true
+  processMealFile:
+    handler: src/functions/processMealFile.handler
+    events:
+      - sqs:
+          arn: !GetAtt MealsQueue.Arn
+          batchSize: 1
 
 resources:
   Resources:
