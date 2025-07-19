@@ -6,10 +6,11 @@ import { db } from '../db';
 import { usersTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { hash } from 'bcryptjs';
+import { calculateGoals } from '../lib/goalCalculator';
 
 const schema = z.object({
-  goal: z.enum(Object.values(Goal) as [string, ...string[]]),
-  gender: z.enum(Object.values(Gender) as [string, ...string[]]),
+  goal: z.enum(Object.values(Goal)),
+  gender: z.enum(Object.values(Gender)),
   weight: z.number().min(40).max(200),
   height: z.number().min(100).max(250),
   birthDate: z.iso.date(),
@@ -46,6 +47,15 @@ export class SignUpController {
 
     const { account, ...userData } = data;
 
+    const goals = calculateGoals({
+      activityLevel: data.activityLevel,
+      birthDate: new Date(data.birthDate),
+      gender: data.gender,
+      height: data.height,
+      weight: data.weight,
+      goal: data.goal,
+    });
+
     const hashedPassword = await hash(account.password, 10);
 
     const [user] = await db
@@ -53,6 +63,7 @@ export class SignUpController {
       .values({
         ...userData,
         ...account,
+        ...goals,
         password: hashedPassword,
         calories: 0,
         proteins: 0,
