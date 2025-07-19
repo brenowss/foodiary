@@ -5,6 +5,7 @@ import { Goal, Gender } from '../types/enums';
 import { db } from '../db';
 import { usersTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
+import { hash } from 'bcryptjs';
 
 const schema = z.object({
   goal: z.enum(Object.values(Goal) as [string, ...string[]]),
@@ -45,11 +46,14 @@ export class SignUpController {
 
     const { account, ...userData } = data;
 
+    const hashedPassword = await hash(account.password, 10);
+
     const [user] = await db
       .insert(usersTable)
       .values({
         ...userData,
         ...account,
+        password: hashedPassword,
         calories: 0,
         proteins: 0,
         carbohydrates: 0,
