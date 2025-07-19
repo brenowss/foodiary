@@ -20,3 +20,10 @@ export function badRequest(body: Record<string, unknown>): HttpResponse {
     body,
   };
 }
+
+export function conflict(body: Record<string, unknown>): HttpResponse {
+  return {
+    statusCode: 409,
+    body,
+  };
+}
