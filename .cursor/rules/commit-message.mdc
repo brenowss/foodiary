@@ -1,0 +1,7 @@
+---
+description: this rules sets how the commit messages should be writen
+alwaysApply: false
+---
+
+always use conventional commits patterns to write the commit message, following the correct structure.
+write the commit messages in simple and technical english
