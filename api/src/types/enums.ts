@@ -8,3 +8,16 @@ export enum Gender {
   MALE = 'male',
   FEMALE = 'female',
 }
+
+export enum MealInputType {
+  AUDIO = 'audio',
+  PICTURE = 'picture',
+}
+
+export enum MealStatus {
+  UPLOADING = 'uploading',
+  QUEUED = 'queued',
+  PROCESSING = 'processing',
+  SUCCESS = 'success',
+  FAILED = 'failed',
+}
