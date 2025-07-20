@@ -1,7 +1,11 @@
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { mealsTable } from '../db/schema';
-import { MealStatus } from '../types/enums';
+import { MealInputType, MealStatus } from '../types/enums';
+import { transcribeAudio } from '../services/ai';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { s3Client } from '../clients/s3client';
+import { Readable } from 'stream';
 
 export class ProcessMealFile {
   static async process({ fileKey }: { fileKey: string }) {
@@ -26,7 +30,27 @@ export class ProcessMealFile {
       .where(eq(mealsTable.id, meal.id));
 
     try {
-      // CHAMAR A IA...
+      if (meal.inputType === MealInputType.AUDIO) {
+        const command = new GetObjectCommand({
+          Bucket: process.env.BUCKET_NAME!,
+          Key: meal.inputFileKey,
+        });
+
+        const { Body } = await s3Client.send(command);
+
+        if (!Body || !(Body instanceof Readable)) {
+          throw new Error('File not found.');
+        }
+
+        const chunks: Buffer[] = [];
+        for await (const chunk of Body) {
+          chunks.push(Buffer.from(chunk));
+        }
+
+        const text = await transcribeAudio(Buffer.concat(chunks));
+
+        console.log('🚀 ~ ProcessMealFile ~ text:', text);
+      }
 
       await db
         .update(mealsTable)
