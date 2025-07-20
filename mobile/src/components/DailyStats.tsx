@@ -1,6 +1,18 @@
 import { Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import Animated, {
+  useSharedValue,
+  useAnimatedProps,
+  withTiming,
+  Easing,
+  withDelay,
+  useDerivedValue,
+  runOnJS
+} from 'react-native-reanimated';
+import { useEffect, useState } from 'react';
 import { cn } from '../utils/cn';
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 interface IArcProps {
   percentage: number;
@@ -9,6 +21,7 @@ interface IArcProps {
   strokeWidth: number;
   baseStrokeColor?: string;
   className?: string;
+  delay?: number;
 }
 
 function Arc({
@@ -17,9 +30,27 @@ function Arc({
   radius,
   strokeWidth,
   className,
+  delay = 0,
 }: IArcProps) {
   const semiCircumference = Math.PI * radius;
-  const arcLength = (percentage / 100) * semiCircumference;
+  const animatedPercentage = useSharedValue(0);
+
+  useEffect(() => {
+    animatedPercentage.value = withDelay(
+      delay,
+      withTiming(percentage, {
+        duration: 1500,
+        easing: Easing.out(Easing.cubic),
+      })
+    );
+  }, [percentage, delay]);
+
+  const animatedProps = useAnimatedProps(() => {
+    const arcLength = (animatedPercentage.value / 100) * semiCircumference;
+    return {
+      strokeDasharray: [arcLength, semiCircumference],
+    };
+  });
 
   const arcDraw = `M ${strokeWidth / 2},${radius + strokeWidth / 2}
                    A ${radius},${radius} 0 0,1 ${radius * 2 + strokeWidth / 2},${radius + strokeWidth / 2}`;
@@ -39,16 +70,48 @@ function Arc({
           strokeLinecap="round"
         />
 
-        <Path
+        <AnimatedPath
           d={arcDraw}
           fill="none"
           stroke={color}
           strokeWidth={strokeWidth}
-          strokeDasharray={[arcLength, semiCircumference]}
           strokeLinecap="round"
+          animatedProps={animatedProps}
         />
       </Svg>
     </View>
+  );
+}
+
+interface AnimatedNumberProps {
+  value: number;
+  delay?: number;
+  className?: string;
+  suffix?: string;
+}
+
+function AnimatedNumber({ value, delay = 0, className, suffix = '' }: AnimatedNumberProps) {
+  const [displayValue, setDisplayValue] = useState(0);
+  const animatedValue = useSharedValue(0);
+
+  useEffect(() => {
+    animatedValue.value = withDelay(
+      delay,
+      withTiming(value, {
+        duration: 1500,
+        easing: Easing.out(Easing.cubic),
+      })
+    );
+  }, [value, delay]);
+
+  useDerivedValue(() => {
+    runOnJS(setDisplayValue)(Math.round(animatedValue.value));
+  });
+
+  return (
+    <Text className={className}>
+      {displayValue}{suffix}
+    </Text>
   );
 }
 
@@ -78,6 +141,7 @@ export function DailyStats({
           color="#FF5736"
           radius={160}
           strokeWidth={12}
+          delay={0}
         />
         <Arc
           percentage={calcMacroPercentage(proteins)}
@@ -85,6 +149,7 @@ export function DailyStats({
           radius={140}
           strokeWidth={12}
           className="absolute top-[20]"
+          delay={200}
         />
         <Arc
           percentage={calcMacroPercentage(carbohydrates)}
@@ -92,6 +157,7 @@ export function DailyStats({
           radius={120}
           strokeWidth={12}
           className="absolute top-[40]"
+          delay={400}
         />
         <Arc
           percentage={calcMacroPercentage(fats)}
@@ -99,13 +165,16 @@ export function DailyStats({
           radius={100}
           strokeWidth={12}
           className="absolute top-[60]"
+          delay={600}
         />
 
         <View className="-mt-16 items-center justify-center">
           <Text>
-            <Text className="font-sans-bold text-support-tomato text-xl">
-              {Math.round(calories.current)}
-            </Text>
+            <AnimatedNumber
+              value={calories.current}
+              delay={0}
+              className="font-sans-bold text-support-tomato text-xl"
+            />
             <Text className="text-base text-gray-700"> / {calories.goal}</Text>
           </Text>
 
@@ -118,7 +187,11 @@ export function DailyStats({
       <View className="p-4 w-full flex-row items-center justify-between">
         <View className="items-center w-1/3 justify-center">
           <Text className="font-sans-bold text-support-teal text-base">
-            {Math.round(proteins.current)}g
+            <AnimatedNumber
+              value={proteins.current}
+              delay={200}
+              suffix="g"
+            />
             <Text className="text-sm text-gray-700"> / {proteins.goal}g</Text>
           </Text>
           <Text className="text-sm text-gray-700">Proteínas</Text>
@@ -126,7 +199,11 @@ export function DailyStats({
 
         <View className="items-center w-1/3 justify-center">
           <Text className="font-sans-bold text-support-yellow text-base">
-            {Math.round(carbohydrates.current)}g
+            <AnimatedNumber
+              value={carbohydrates.current}
+              delay={400}
+              suffix="g"
+            />
             <Text className="text-sm text-gray-700"> / {carbohydrates.goal}g</Text>
           </Text>
           <Text className="text-sm text-gray-700">Carboidratos</Text>
@@ -134,7 +211,11 @@ export function DailyStats({
 
         <View className="items-center w-1/3 justify-center">
           <Text className="font-sans-bold text-support-orange text-base">
-            {Math.round(fats.current)}g
+            <AnimatedNumber
+              value={fats.current}
+              delay={600}
+              suffix="g"
+            />
             <Text className="text-sm text-gray-700"> / {fats.goal}g</Text>
           </Text>
           <Text className="text-sm text-gray-700">Gorduras</Text>
