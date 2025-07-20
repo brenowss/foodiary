@@ -1,17 +1,10 @@
 import { Text, TouchableOpacity, View } from 'react-native';
 
 interface MealCardProps {
-  meal: {
-    id: number;
-    name: string;
-    calories: number;
-    proteins: number;
-    carbohydrates: number;
-    fats: number;
-  };
+  id: string;
+  name: string;
 }
-
-export function MealCard({ meal }: MealCardProps) {
+export function MealCard({ name }: MealCardProps) {
   return (
     <TouchableOpacity>
       <Text className="text-base font-sans-regular text-gray-700">
@@ -25,10 +18,10 @@ export function MealCard({ meal }: MealCardProps) {
 
         <View>
           <Text className="text-base font-sans-regular text-gray-700">
-            {meal.name}
+            {name}
           </Text>
           <Text className="text-base font-sans-medium text-black-700">
-            {meal.calories}
+            200kcal
           </Text>
         </View>
       </View>

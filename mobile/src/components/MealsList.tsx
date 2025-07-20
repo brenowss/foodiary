@@ -1,49 +1,97 @@
 import { FlatList, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DailyStats } from './DailyStats';
+import { DateSwitcher } from './DateSwitcher';
 import { MealCard } from './MealCard';
 
 const meals = [
   {
-    id: 1,
+    id: String(Math.random()),
     name: 'Café da manhã',
-    calories: 100,
-    proteins: 10,
-    carbohydrates: 10,
-    fats: 10,
   },
   {
-    id: 2,
+    id: String(Math.random()),
     name: 'Almoço',
-    calories: 200,
-    proteins: 20,
-    carbohydrates: 20,
-    fats: 20,
   },
   {
-    id: 3,
+    id: String(Math.random()),
     name: 'Janta',
-    calories: 300,
-    proteins: 30,
-    carbohydrates: 30,
-    fats: 30,
+  },
+  {
+    id: String(Math.random()),
+    name: 'Café da manhã',
+  },
+  {
+    id: String(Math.random()),
+    name: 'Almoço',
+  },
+  {
+    id: String(Math.random()),
+    name: 'Janta (ultimo)',
   },
 ];
 
-export function MealsList() {
+function MealsListHeader() {
   return (
-    <View className="p-5">
-      <Text className="text-black-700 text-base font-sans-medium tracking-[1.28px]">
-        REFEIÇÕES
-      </Text>
+    <View>
+      <DateSwitcher />
 
-      <View className="gap-8 mt-4">
-        <FlatList
-          data={meals}
-          renderItem={({ item }) => <MealCard meal={item} />}
-          keyExtractor={(item) => item.id.toString()}
-          showsVerticalScrollIndicator={false}
-          contentContainerClassName="gap-4"
+
+
+      <View className="mt-2">
+        <DailyStats
+          calories={{
+            current: 500,
+            goal: 2500,
+          }}
+          proteins={{
+            current: 2000,
+            goal: 2500,
+          }}
+          carbohydrates={{
+            current: 500,
+            goal: 2500,
+          }}
+          fats={{
+            current: 500,
+            goal: 2500,
+          }}
         />
       </View>
+
+      <View className="h-px bg-gray-200 mt-7" />
+
+      <Text className="text-black-700 m-5 text-base font-sans-medium tracking-[1.28px]">
+        REFEIÇÕES
+      </Text>
     </View>
+  );
+}
+
+function Separator() {
+  return (
+    <View className="h-8" />
+  );
+}
+
+export function MealsList() {
+  const { bottom } = useSafeAreaInsets();
+
+  return (
+    <FlatList
+      data={meals}
+      contentContainerStyle={{ paddingBottom: 80 + bottom + 16 }}
+      keyExtractor={meal => meal.id}
+      ListHeaderComponent={MealsListHeader}
+      ItemSeparatorComponent={Separator}
+      renderItem={({ item: meal }) => (
+        <View className="mx-5">
+          <MealCard
+            id={meal.id}
+            name={meal.name}
+          />
+        </View>
+      )}
+    />
   );
 }
