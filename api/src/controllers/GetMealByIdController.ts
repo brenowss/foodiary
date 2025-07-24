@@ -10,9 +10,12 @@ const schema = z.object({
 });
 
 export class GetMealByIdController {
-  static async handle({ userId, params }: ProtectedHttpRequest): Promise<HttpResponse> {
+  static async handle({
+    userId,
+    params,
+  }: ProtectedHttpRequest): Promise<HttpResponse> {
     const { success, error, data } = schema.safeParse(params);
-    
+
     if (!success) {
       return badRequest({ errors: error.issues });
     }
@@ -24,12 +27,10 @@ export class GetMealByIdController {
         createdAt: true,
         icon: true,
         name: true,
+        key: true,
         status: true,
       },
-      where: and(
-        eq(mealsTable.id, data.mealId),
-        eq(mealsTable.userId, userId),
-      ),
+      where: and(eq(mealsTable.id, data.mealId), eq(mealsTable.userId, userId)),
     });
 
     return ok({ meal });

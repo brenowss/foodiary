@@ -11,6 +11,7 @@ export class MeController {
         id: true,
         email: true,
         name: true,
+        goal: true,
         calories: true,
         proteins: true,
         carbohydrates: true,

@@ -6,13 +6,16 @@ import { HttpResponse, ProtectedHttpRequest } from '../types/Http';
 import { badRequest, ok } from '../utils/http';
 
 const schema = z.object({
-  date: z.iso.date().transform(dateStr => new Date(dateStr)),
+  date: z.iso.date().transform((dateStr) => new Date(dateStr)),
 });
 
 export class ListMealsController {
-  static async handle({ userId, queryParams }: ProtectedHttpRequest): Promise<HttpResponse> {
+  static async handle({
+    userId,
+    queryParams,
+  }: ProtectedHttpRequest): Promise<HttpResponse> {
     const { success, error, data } = schema.safeParse(queryParams);
-    
+
     if (!success) {
       return badRequest({ errors: error.issues });
     }
@@ -27,12 +30,13 @@ export class ListMealsController {
         createdAt: true,
         icon: true,
         name: true,
+        key: true,
       },
       where: and(
         eq(mealsTable.userId, userId),
         eq(mealsTable.status, 'success'),
         gte(mealsTable.createdAt, data.date),
-        lte(mealsTable.createdAt, endDate),
+        lte(mealsTable.createdAt, endDate)
       ),
     });
 

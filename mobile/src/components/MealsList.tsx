@@ -8,11 +8,13 @@ import { httpClient } from '../services/httpClient';
 import { DailyStats } from './DailyStats';
 import { DateSwitcher } from './DateSwitcher';
 import { MealCard } from './MealCard';
+import { calculateMealTargets, type MealKey } from '../utils/calculateMealTargets';
 
 type Meal = {
   name: string;
   id: string;
   icon: string;
+  key: MealKey;
   foods: {
     name: string;
     quantity: string;
@@ -92,22 +94,100 @@ function MealsListHeader({
       </View>
 
       <View className="h-px bg-gray-200 mt-7" />
-
-      <Text className="text-black-700 m-5 text-base font-sans-medium tracking-[1.28px]">
-        REFEIÇÕES
-      </Text>
     </View>
   );
 }
 
-function Separator() {
+const MEAL_SLOTS: { key: MealKey; name: string; icon: string }[] = [
+  { key: 'breakfast', name: 'Café da Manhã', icon: '🌅' },
+  { key: 'lunch', name: 'Almoço', icon: '🍽️' },
+  { key: 'snack', name: 'Lanche', icon: '🍪' },
+  { key: 'dinner', name: 'Jantar', icon: '🌙' },
+  { key: 'extra', name: 'Extra', icon: '➕' },
+];
+
+interface MealSlotProps {
+  slot: { key: MealKey; name: string; icon: string };
+  meals: Meal[];
+  targetCalories: number;
+}
+
+function MealSlot({ slot, meals, targetCalories }: MealSlotProps) {
+  const slotMeals = meals.filter(meal => meal.key === slot.key);
+
+  const slotTotals = useMemo(() => {
+    let calories = 0;
+    let proteins = 0;
+    let carbohydrates = 0;
+    let fats = 0;
+
+    for (const meal of slotMeals) {
+      for (const food of meal.foods) {
+        calories += food.calories;
+        proteins += food.proteins;
+        carbohydrates += food.carbohydrates;
+        fats += food.fats;
+      }
+    }
+
+    return { calories, proteins, carbohydrates, fats };
+  }, [slotMeals]);
+
   return (
-    <View className="h-8" />
+    <View className="mx-5 mb-6">
+      {/* Header do Slot */}
+      <View className="flex-row items-center justify-between mb-3">
+        <View className="flex-row items-center">
+          <Text className="text-2xl mr-2">{slot.icon}</Text>
+          <Text className="text-gray-800 text-lg font-sans-medium">
+            {slot.name}
+          </Text>
+        </View>
+        <View className="flex-row items-center">
+          <Text className="text-gray-600 text-sm font-sans-medium">
+            {slotTotals.calories}
+          </Text>
+          <Text className="text-gray-400 text-sm font-sans-regular">
+            /{targetCalories} kcal
+          </Text>
+        </View>
+      </View>
+
+      {/* Lista de Refeições do Slot */}
+      {slotMeals.length > 0 ? (
+        <View className="space-y-3">
+          {slotMeals.map((meal, index) => (
+            <View key={meal.id}>
+              <MealCard
+                id={meal.id}
+                name={meal.name}
+                icon={meal.icon}
+                foods={meal.foods}
+                createdAt={new Date(meal.createdAt)}
+              />
+              {index < slotMeals.length - 1 && (
+                <View className="h-2" />
+              )}
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-4 items-center justify-center min-h-[80px]">
+          <Text className="text-gray-400 text-sm font-sans-regular">
+            Nenhuma refeição adicionada
+          </Text>
+          <Text className="text-gray-300 text-xs font-sans-regular mt-1">
+            Meta: {targetCalories} kcal
+          </Text>
+        </View>
+      )}
+    </View>
   );
 }
 
 export function MealsList() {
   const { bottom } = useSafeAreaInsets();
+  const { user } = useAuth();
 
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -132,6 +212,28 @@ export function MealsList() {
       return data.meals;
     },
   });
+
+  // Calcular as metas de calorias por refeição
+  const mealTargets = useMemo(() => {
+    if (!user || !meals) return {
+      breakfast: 0,
+      lunch: 0,
+      snack: 0,
+      dinner: 0,
+      extra: 0,
+    };
+
+    const consumedMeals = meals.map(meal => ({
+      meal: meal.key,
+      calories: meal.foods.reduce((sum, food) => sum + food.calories, 0),
+    }));
+
+    return calculateMealTargets(
+      user.calories,
+      user.goal as 'gain' | 'lose' | 'maintain',
+      consumedMeals
+    );
+  }, [user, meals]);
 
   useFocusEffect(
     useCallback(() => {
@@ -159,10 +261,10 @@ export function MealsList() {
 
   return (
     <FlatList
-      data={meals}
+      data={MEAL_SLOTS}
       contentContainerStyle={{ paddingBottom: 80 + bottom + 16 }}
-      keyExtractor={meal => meal.id}
-      ListEmptyComponent={<Text>Nenhuma refeição cadastrada...</Text>}
+      keyExtractor={slot => slot.key}
+      showsVerticalScrollIndicator={false}
       ListHeaderComponent={(
         <MealsListHeader
           currentDate={currentDate}
@@ -171,17 +273,12 @@ export function MealsList() {
           onPreviousDate={handlePreviousDate}
         />
       )}
-      ItemSeparatorComponent={Separator}
-      renderItem={({ item: meal }) => (
-        <View className="mx-5">
-          <MealCard
-            id={meal.id}
-            name={meal.name}
-            icon={meal.icon}
-            foods={meal.foods}
-            createdAt={new Date(meal.createdAt)}
-          />
-        </View>
+      renderItem={({ item: slot }) => (
+        <MealSlot
+          slot={slot}
+          meals={meals ?? []}
+          targetCalories={mealTargets[slot.key] || 0}
+        />
       )}
     />
   );

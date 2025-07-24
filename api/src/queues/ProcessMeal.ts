@@ -11,6 +11,8 @@ import {
 } from '../services/ai';
 import { s3Client } from '../clients/s3client';
 
+type MealKey = 'breakfast' | 'lunch' | 'snack' | 'dinner' | 'extra';
+
 export class ProcessMeal {
   static async process({ fileKey }: { fileKey: string }) {
     console.log('Processing file', {
@@ -37,6 +39,7 @@ export class ProcessMeal {
     try {
       let icon = '';
       let name = '';
+      let key: MealKey = 'extra';
       let foods = [];
 
       if (meal.inputType === 'audio') {
@@ -44,12 +47,13 @@ export class ProcessMeal {
         const transcription = await transcribeAudio(audioFileBuffer);
 
         const mealDetails = await getMealDetailsFromText({
-          createdAt: new Date(),
+          createdAt: meal.createdAt,
           text: transcription,
         });
 
         icon = mealDetails.icon;
         name = mealDetails.name;
+        key = mealDetails.key;
         foods = mealDetails.foods;
       }
 
@@ -75,6 +79,7 @@ export class ProcessMeal {
 
         icon = mealDetails.icon;
         name = mealDetails.name;
+        key = mealDetails.key;
         foods = mealDetails.foods;
       }
 
@@ -84,6 +89,7 @@ export class ProcessMeal {
           status: 'success',
           name,
           icon,
+          key,
           foods,
         })
         .where(eq(mealsTable.id, meal.id));

@@ -8,6 +8,7 @@ type User = {
   email: string;
   name: string;
   id: string;
+  goal: string;
   calories: number;
   proteins: number;
   carbohydrates: number;
