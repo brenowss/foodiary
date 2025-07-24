@@ -1,102 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Text, View } from 'react-native';
+import { FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../hooks/useAuth';
 import { httpClient } from '../services/httpClient';
-import { DailyStats } from './DailyStats';
-import { DateSwitcher } from './DateSwitcher';
-import { MealCard } from './MealCard';
-import { calculateMealTargets, type MealKey } from '../utils/calculateMealTargets';
-
-type Meal = {
-  name: string;
-  id: string;
-  icon: string;
-  key: MealKey;
-  foods: {
-    name: string;
-    quantity: string;
-    calories: number;
-    proteins: number;
-    carbohydrates: number;
-    fats: number;
-  }[];
-  createdAt: string;
-}
-
-interface IMealsListHeaderProps {
-  currentDate: Date;
-  meals: Meal[];
-  onPreviousDate(): void;
-  onNextDate(): void;
-}
-
-function MealsListHeader({
-  meals,
-  currentDate,
-  onNextDate,
-  onPreviousDate,
-}: IMealsListHeaderProps) {
-  const { user } = useAuth();
-
-  const totals = useMemo(() => {
-    let calories = 0;
-    let proteins = 0;
-    let carbohydrates = 0;
-    let fats = 0;
-
-    for (const meal of meals) {
-      for (const food of meal.foods) {
-        calories += food.calories;
-        proteins += food.proteins;
-        carbohydrates += food.carbohydrates;
-        fats += food.fats;
-      }
-    }
-
-    return {
-      calories,
-      proteins,
-      carbohydrates,
-      fats,
-    };
-  }, [meals]);
-
-  return (
-    <View>
-      <DateSwitcher
-        currentDate={currentDate}
-        onNextDate={onNextDate}
-        onPreviousDate={onPreviousDate}
-      />
-
-      <View className="mt-2">
-        <DailyStats
-          calories={{
-            current: totals.calories,
-            goal: user!.calories,
-          }}
-          proteins={{
-            current: totals.proteins,
-            goal: user!.proteins,
-          }}
-          carbohydrates={{
-            current: totals.carbohydrates,
-            goal: user!.carbohydrates,
-          }}
-          fats={{
-            current: totals.fats,
-            goal: user!.fats
-          }}
-        />
-      </View>
-
-      <View className="h-px bg-gray-200 mt-7" />
-    </View>
-  );
-}
+import { MealsListHeader } from './MealsListHeader';
+import { MealSlot } from './MealSlot';
+import { calculateMealTargets } from '../utils/calculateMealTargets';
+import { type Meal, type MealKey } from '../types/meal';
 
 const MEAL_SLOTS: { key: MealKey; name: string; icon: string }[] = [
   { key: 'breakfast', name: 'Café da Manhã', icon: '🌅' },
@@ -105,85 +17,6 @@ const MEAL_SLOTS: { key: MealKey; name: string; icon: string }[] = [
   { key: 'dinner', name: 'Jantar', icon: '🌙' },
   { key: 'extra', name: 'Extra', icon: '➕' },
 ];
-
-interface MealSlotProps {
-  slot: { key: MealKey; name: string; icon: string };
-  meals: Meal[];
-  targetCalories: number;
-}
-
-function MealSlot({ slot, meals, targetCalories }: MealSlotProps) {
-  const slotMeals = meals.filter(meal => meal.key === slot.key);
-
-  const slotTotals = useMemo(() => {
-    let calories = 0;
-    let proteins = 0;
-    let carbohydrates = 0;
-    let fats = 0;
-
-    for (const meal of slotMeals) {
-      for (const food of meal.foods) {
-        calories += food.calories;
-        proteins += food.proteins;
-        carbohydrates += food.carbohydrates;
-        fats += food.fats;
-      }
-    }
-
-    return { calories, proteins, carbohydrates, fats };
-  }, [slotMeals]);
-
-  return (
-    <View className="mx-5 mb-6">
-      {/* Header do Slot */}
-      <View className="flex-row items-center justify-between mb-3">
-        <View className="flex-row items-center">
-          <Text className="text-2xl mr-2">{slot.icon}</Text>
-          <Text className="text-gray-800 text-lg font-sans-medium">
-            {slot.name}
-          </Text>
-        </View>
-        <View className="flex-row items-center">
-          <Text className="text-gray-600 text-sm font-sans-medium">
-            {slotTotals.calories}
-          </Text>
-          <Text className="text-gray-400 text-sm font-sans-regular">
-            /{targetCalories} kcal
-          </Text>
-        </View>
-      </View>
-
-      {/* Lista de Refeições do Slot */}
-      {slotMeals.length > 0 ? (
-        <View className="space-y-3">
-          {slotMeals.map((meal, index) => (
-            <View key={meal.id}>
-              <MealCard
-                id={meal.id}
-                name={meal.name}
-                icon={meal.icon}
-                foods={meal.foods}
-                createdAt={new Date(meal.createdAt)}
-              />
-              {index < slotMeals.length - 1 && (
-                <View className="h-2" />
-              )}
-            </View>
-          ))}
-        </View>
-      ) : (
-        <View className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-4 items-center justify-center min-h-[80px]">
-          <Text className="text-gray-400 text-sm font-sans-regular">
-            Nenhuma refeição adicionada
-          </Text>
-          <Text className="text-gray-300 text-xs font-sans-regular mt-1">
-            Meta: {targetCalories} kcal
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-}
 
 export function MealsList() {
   const { bottom } = useSafeAreaInsets();

@@ -1,28 +1,5 @@
-/**
- * Defines the possible user goals.
- */
-export type Goal = 'gain' | 'lose' | 'maintain';
-
-/**
- * Defines the keys for the meals.
- */
-export type MealKey = 'breakfast' | 'lunch' | 'snack' | 'dinner' | 'extra';
-
-/**
- * Represents a meal that has been consumed by the user.
- */
-export interface ConsumedMeal {
-  meal: MealKey;
-  calories: number;
-}
-
-/**
- * Represents the final calculated calorie targets for all meals.
- * The keys are the meal names, and the values are the calorie targets.
- */
-export type MealTargets = {
-  [key in MealKey]: number;
-};
+import { type Goal, type MealKey, type MealTargets } from '../types/meal';
+import { type ConsumedMeal } from '../types/meal';
 
 // --- UTILITY FUNCTION ---
 
