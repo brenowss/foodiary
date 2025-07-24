@@ -1,35 +1,33 @@
-import { z } from 'zod';
-import { HttpRequest, HttpResponse } from '../types/http';
-import { badRequest, conflict, created } from '../utils/http';
-import { Goal, Gender } from '../types/enums';
+import { hash } from 'bcryptjs';
+import { eq } from 'drizzle-orm';
+import z from 'zod';
 import { db } from '../db';
 import { usersTable } from '../db/schema';
-import { eq } from 'drizzle-orm';
-import { hash } from 'bcryptjs';
-import { calculateGoals } from '../lib/goalCalculator';
+import { calculateGoals } from '../lib/calculateGoals';
+import { signAccessTokenFor } from '../lib/jwt';
+import { HttpRequest, HttpResponse } from '../types/Http';
+import { badRequest, conflict, created } from '../utils/http';
 
 const schema = z.object({
-  goal: z.enum(Object.values(Goal)),
-  gender: z.enum(Object.values(Gender)),
-  weight: z.number().min(40).max(200),
-  height: z.number().min(100).max(250),
+  goal: z.enum(['lose', 'maintain', 'gain']),
+  gender: z.enum(['male', 'female']),
   birthDate: z.iso.date(),
+  height: z.number(),
+  weight: z.number(),
   activityLevel: z.number().min(1).max(5),
   account: z.object({
-    name: z.string().min(3),
+    name: z.string().min(1),
     email: z.email(),
     password: z.string().min(8),
   }),
 });
 
 export class SignUpController {
-  static async handle(request: HttpRequest): Promise<HttpResponse> {
-    const { data, error } = schema.safeParse(request.body);
+  static async handle({ body }: HttpRequest): Promise<HttpResponse> {
+    const { success, error, data } = schema.safeParse(body);
 
-    if (error) {
-      return badRequest({
-        message: error.message,
-      });
+    if (!success) {
+      return badRequest({ errors: error.issues });
     }
 
     const userAlreadyExists = await db.query.usersTable.findFirst({
@@ -40,44 +38,36 @@ export class SignUpController {
     });
 
     if (userAlreadyExists) {
-      return conflict({
-        error: 'This email is already in use',
-      });
+      return conflict({ error: 'This email is already in use.' });
     }
 
-    const { account, ...userData } = data;
-
+    const { account, ...rest } = data;
     const goals = calculateGoals({
-      activityLevel: data.activityLevel,
-      birthDate: new Date(data.birthDate),
-      gender: data.gender,
-      height: data.height,
-      weight: data.weight,
-      goal: data.goal,
+      activityLevel: rest.activityLevel,
+      birthDate: new Date(rest.birthDate),
+      gender: rest.gender,
+      goal: rest.goal,
+      height: rest.height,
+      weight: rest.weight,
     });
+    
+    const hashedPassword = await hash(account.password, 8);
 
-    const hashedPassword = await hash(account.password, 10);
 
     const [user] = await db
       .insert(usersTable)
       .values({
-        ...userData,
         ...account,
+        ...rest,
         ...goals,
         password: hashedPassword,
-        calories: 0,
-        proteins: 0,
-        carbohydrates: 0,
-        fats: 0,
       })
       .returning({
         id: usersTable.id,
       });
 
-    return created({
-      data: {
-        id: user.id,
-      },
-    });
+    const accessToken = signAccessTokenFor(user.id);
+
+    return created({ accessToken });
   }
 }

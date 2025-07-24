@@ -11,6 +11,8 @@ export async function handler(event: APIGatewayProxyEventV2) {
     const response = await CreateMealController.handle(request);
     return parseResponse(response);
   } catch {
-    return parseResponse(unauthorized({ error: 'Invalid access token.' }));
+    return parseResponse(
+      unauthorized({ error: 'Invalid access token.' })
+    );
   }
 }

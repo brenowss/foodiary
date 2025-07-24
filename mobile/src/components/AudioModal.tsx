@@ -4,11 +4,12 @@ import { CheckIcon, MicIcon, PauseIcon, PlayIcon, SquareIcon, Trash2Icon, XIcon 
 import { useEffect, useState } from 'react';
 import { Alert, Modal, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+
+import { useCreateMeal } from '../hooks/useCreateMeal';
 import { colors } from '../styles/colors';
 import { cn } from '../utils/cn';
 import { Button } from './Button';
-import { useMutation } from '@tanstack/react-query';
-import { httpClient } from '../services/httpClient';
+import { router } from 'expo-router';
 
 interface IAudioModalProps {
   open: boolean;
@@ -22,14 +23,11 @@ export function AudioModal({ onClose, open }: IAudioModalProps) {
   const { isRecording } = useAudioRecorderState(audioRecorder);
   const player = useAudioPlayer(audioUri);
 
-  const { mutateAsync: createMeal } = useMutation({
-    mutationFn: async (uri: string) => {
-      const { data } = await httpClient.post('/meals', {
-        inputType: 'audio/m4a',
-        inputFileKey: uri,
-      });
-
-      console.log('🚀 ~ mutationFn: ~ data:', data);
+  const { createMeal, isLoading } = useCreateMeal({
+    fileType: 'audio/m4a',
+    onSuccess: (mealId: string) => {
+      router.push(`/meals/${mealId}`);
+      handleCloseModal();
     },
   });
 
@@ -147,7 +145,11 @@ export function AudioModal({ onClose, open }: IAudioModalProps) {
                   </Button>
                 )}
 
-                <Button size="icon" onPress={() => createMeal(audioUri)}>
+                <Button
+                  size="icon"
+                  onPress={() => createMeal(audioUri)}
+                  loading={isLoading}
+                >
                   <CheckIcon size={20} color={colors.black[700]} />
                 </Button>
               </View>

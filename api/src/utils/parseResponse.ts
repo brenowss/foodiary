@@ -1,4 +1,4 @@
-import { HttpResponse } from '../types/http';
+import { HttpResponse } from '../types/Http';
 
 export function parseResponse({ statusCode, body }: HttpResponse) {
   return {

@@ -1,25 +1,25 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda';
-import { ProtectedHttpRequest } from '../types/http';
-import { parseHttpEvent } from './parseHttpEvent';
 import { validateAccessToken } from '../lib/jwt';
+import { ProtectedHttpRequest } from '../types/Http';
+import { parseEvent } from './parseEvent';
 
-export function parseProtectedEvent(
-  event: APIGatewayProxyEventV2
-): ProtectedHttpRequest {
-  const baseEvent = parseHttpEvent(event);
+export function parseProtectedEvent(event: APIGatewayProxyEventV2): ProtectedHttpRequest {
+  const baseEvent = parseEvent(event);
   const { authorization } = event.headers;
 
   if (!authorization) {
-    throw new Error('Authorization header is required');
+    throw new Error('Access token not provided.');
   }
 
-  const [, accessToken] = authorization.split(' ');
-
-  const { sub: userId } = validateAccessToken(accessToken);
+  const [, token] = authorization.split(' ');
+  const userId = validateAccessToken(token);
 
   if (!userId) {
-    throw new Error('Invalid access token');
+    throw new Error('Invalid access token.');
   }
 
-  return { ...baseEvent, userId };
+  return {
+    ...baseEvent,
+    userId,
+  };
 }

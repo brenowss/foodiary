@@ -1,25 +1,21 @@
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
 
-export function signAccessToken(userId: string) {
-  const { JWT_SECRET } = process.env;
+export function signAccessTokenFor(userId: string) {
+  const accessToken = sign(
+    { sub: userId },
+    process.env.JWT_SECRET!,
+    { expiresIn: '3d' },
+  );
 
-  if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET is not defined');
-  }
-
-  return sign({ sub: userId }, JWT_SECRET, { expiresIn: '3d' });
+  return accessToken;
 }
 
-export function validateAccessToken(accessToken: string) {
+export function validateAccessToken(token: string) {
   try {
-    const { JWT_SECRET } = process.env;
+    const { sub } = verify(token, process.env.JWT_SECRET!) as JwtPayload;
 
-    if (!JWT_SECRET) {
-      throw new Error('JWT_SECRET is not defined');
-    }
-
-    return verify(accessToken, JWT_SECRET) as JwtPayload;
-  } catch (error) {
-    throw new Error('Token de acesso inválido');
+    return sub ?? null;
+  } catch {
+    return null;
   }
 }

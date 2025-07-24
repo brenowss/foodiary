@@ -1,5 +1,3 @@
 import { SQSClient } from '@aws-sdk/client-sqs';
 
-export const sqsClient = new SQSClient({
-  region: 'us-east-1',
-});
+export const sqsClient = new SQSClient();

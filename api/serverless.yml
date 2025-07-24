@@ -11,9 +11,8 @@ plugins:
 provider:
   name: aws
   region: us-east-1
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   architecture: arm64
-  timeout: 30
   environment:
     DATABASE_URL: ${env:DATABASE_URL}
     JWT_SECRET: ${env:JWT_SECRET}
@@ -45,38 +44,38 @@ functions:
     handler: src/functions/signin.handler
     events:
       - httpApi:
-          path: /signin
           method: POST
+          path: /signin
   signup:
     handler: src/functions/signup.handler
     events:
       - httpApi:
-          path: /signup
           method: POST
+          path: /signup
   me:
     handler: src/functions/me.handler
     events:
       - httpApi:
-          path: /me
           method: GET
+          path: /me
   createMeal:
     handler: src/functions/createMeal.handler
     events:
       - httpApi:
-          path: /meals
           method: POST
-  listMeal:
-    handler: src/functions/listMeal.handler
+          path: /meals
+  listMeals:
+    handler: src/functions/listMeals.handler
     events:
       - httpApi:
-          path: /meals
           method: GET
+          path: /meals
   getMealById:
     handler: src/functions/getMealById.handler
     events:
       - httpApi:
-          path: /meals/{mealId}
           method: GET
+          path: /meals/{mealId}
   fileUploadedEvent:
     handler: src/functions/fileUploadedEvent.handler
     events:
@@ -85,8 +84,8 @@ functions:
           event: s3:ObjectCreated:*
           existing: true
           forceDeploy: true
-  processMealFile:
-    handler: src/functions/processMealFile.handler
+  processMeal:
+    handler: src/functions/processMeal.handler
     events:
       - sqs:
           arn: !GetAtt MealsQueue.Arn
@@ -105,8 +104,8 @@ resources:
         VisibilityTimeout: 60
         RedrivePolicy:
           maxReceiveCount: 1
-          deadLetterTargetArn: !GetAtt MealsDeadLetterQueue.Arn
-    MealsDeadLetterQueue:
+          deadLetterTargetArn: !GetAtt MealsDLQ.Arn
+    MealsDLQ:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: meals-dead-letter-queue
+        QueueName: meals-queue-dlq

@@ -1,11 +1,12 @@
-import { HttpRequest, HttpResponse } from '../types/http';
-import { badRequest, ok, unauthorized } from '../utils/http';
+import { compare } from 'bcryptjs';
+import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+
 import { db } from '../db';
 import { usersTable } from '../db/schema';
-import { eq } from 'drizzle-orm';
-import { compare } from 'bcryptjs';
-import { signAccessToken } from '../lib/jwt';
+import { signAccessTokenFor } from '../lib/jwt';
+import { HttpRequest, HttpResponse } from '../types/Http';
+import { badRequest, ok, unauthorized } from '../utils/http';
 
 const schema = z.object({
   email: z.email(),
@@ -13,13 +14,11 @@ const schema = z.object({
 });
 
 export class SignInController {
-  static async handle(request: HttpRequest): Promise<HttpResponse> {
-    const { data, error } = schema.safeParse(request.body);
+  static async handle({ body }: HttpRequest): Promise<HttpResponse> {
+    const { success, error, data } = schema.safeParse(body);
 
-    if (error) {
-      return badRequest({
-        message: error.message,
-      });
+    if (!success) {
+      return badRequest({ errors: error.issues });
     }
 
     const user = await db.query.usersTable.findFirst({
@@ -32,23 +31,17 @@ export class SignInController {
     });
 
     if (!user) {
-      return unauthorized({
-        error: 'Invalid email or password',
-      });
+      return unauthorized({ error: 'Invalid credentials.' });
     }
 
     const isPasswordValid = await compare(data.password, user.password);
 
     if (!isPasswordValid) {
-      return unauthorized({
-        error: 'Invalid email or password',
-      });
+      return unauthorized({ error: 'Invalid credentials.' });
     }
 
-    const accessToken = signAccessToken(user.id);
+    const accessToken = signAccessTokenFor(user.id);
 
-    return ok({
-      accessToken,
-    });
+    return ok({ accessToken });
   }
 }

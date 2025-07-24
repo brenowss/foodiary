@@ -1,27 +1,16 @@
-import {
-  date,
-  integer,
-  json,
-  pgEnum,
-  pgTable,
-  timestamp,
-  uuid,
-  varchar,
-} from 'drizzle-orm/pg-core';
-import { MealInputType, MealStatus } from '../types/enums';
+import { date, integer, json, pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 export const usersTable = pgTable('users', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: uuid().primaryKey().defaultRandom(),
+  name: varchar({ length: 255 }).notNull(),
   email: varchar({ length: 255 }).notNull().unique(),
   password: varchar({ length: 255 }).notNull(),
-  name: varchar({ length: 255 }).notNull(),
   goal: varchar({ length: 8 }).notNull(),
-  birthDate: date('birth_date').notNull(),
   gender: varchar({ length: 6 }).notNull(),
-  weight: integer().notNull(),
+  birthDate: date('birth_date').notNull(),
   height: integer().notNull(),
+  weight: integer().notNull(),
   activityLevel: integer('activity_level').notNull(),
-
   // Goals
   calories: integer().notNull(),
   proteins: integer().notNull(),
@@ -29,18 +18,9 @@ export const usersTable = pgTable('users', {
   fats: integer().notNull(),
 });
 
-export const mealStatus = pgEnum('meal_status', [
-  MealStatus.UPLOADING,
-  MealStatus.PROCESSING,
-  MealStatus.SUCCESS,
-  MealStatus.FAILED,
-  MealStatus.SUCCESS,
-]);
+export const mealStatus = pgEnum('meal_status', ['uploading','processing', 'success', 'failed']);
 
-export const mealInputType = pgEnum('meal_input_type', [
-  MealInputType.AUDIO,
-  MealInputType.PICTURE,
-]);
+export const mealInputType = pgEnum('meal_input_type', ['audio', 'picture']);
 
 export const mealsTable = pgTable('meals', {
   id: uuid().primaryKey().defaultRandom(),
@@ -52,6 +32,6 @@ export const mealsTable = pgTable('meals', {
   inputFileKey: varchar('input_file_key', { length: 255 }).notNull(),
   name: varchar({ length: 255 }).notNull(),
   icon: varchar({ length: 100 }).notNull(),
-  foods: json(),
+  foods: json(),  
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
