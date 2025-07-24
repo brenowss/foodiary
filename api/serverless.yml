@@ -13,6 +13,7 @@ provider:
   region: us-east-1
   runtime: nodejs22.x
   architecture: arm64
+  timeout: 60
   environment:
     DATABASE_URL: ${env:DATABASE_URL}
     JWT_SECRET: ${env:JWT_SECRET}
@@ -101,7 +102,7 @@ resources:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: meals-queue
-        VisibilityTimeout: 60
+        VisibilityTimeout: 180
         RedrivePolicy:
           maxReceiveCount: 1
           deadLetterTargetArn: !GetAtt MealsDLQ.Arn

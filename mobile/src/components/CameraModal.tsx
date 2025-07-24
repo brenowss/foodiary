@@ -4,6 +4,7 @@ import { CameraIcon, CheckIcon, Trash2Icon, XIcon } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { Image, Modal, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { ImageManipulator, SaveFormat, useImageManipulator } from 'expo-image-manipulator';
 
 import { colors } from '../styles/colors';
 import { Button } from './Button';
@@ -39,8 +40,10 @@ export function CameraModal({ onClose, open }: ICameraModalProps) {
       return;
     }
 
+
     const { uri } = await cameraRef.current.takePictureAsync({
       imageType: 'jpg',
+      quality: 0.3,
     });
 
     setPhotoUri(uri);

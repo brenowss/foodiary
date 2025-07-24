@@ -13,6 +13,10 @@ import { s3Client } from '../clients/s3client';
 
 export class ProcessMeal {
   static async process({ fileKey }: { fileKey: string }) {
+    console.log('Processing file', {
+      fileKey,
+    });
+
     const meal = await db.query.mealsTable.findFirst({
       where: eq(mealsTable.inputFileKey, fileKey),
     });
@@ -50,11 +54,23 @@ export class ProcessMeal {
       }
 
       if (meal.inputType === 'picture') {
+        console.log('Getting image URL', {
+          fileKey: meal.inputFileKey,
+        });
+
         const imageURL = await this.getImageURL(meal.inputFileKey);
+
+        console.log('Got image URL', {
+          imageURL,
+        });
 
         const mealDetails = await getMealDetailsFromImage({
           createdAt: meal.createdAt,
           imageURL,
+        });
+
+        console.log('Got meal details from image', {
+          mealDetails,
         });
 
         icon = mealDetails.icon;
@@ -72,7 +88,7 @@ export class ProcessMeal {
         })
         .where(eq(mealsTable.id, meal.id));
     } catch (error) {
-      console.log(error);
+      console.log('Failed to process meal', error);
 
       await db
         .update(mealsTable)
