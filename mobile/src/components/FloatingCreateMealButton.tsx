@@ -93,7 +93,7 @@ export function FloatingCreateMealButton() {
         {/* Botão do Microfone */}
         <AnimatedPressable
           style={micButtonStyle}
-          className="absolute w-14 h-14 bg-blue-500 rounded-full items-center justify-center shadow-lg"
+          className="absolute w-14 h-14 bg-lime-600 rounded-full items-center justify-center shadow-lg"
           onPress={handleMicPress}
         >
           <MicIcon size={24} color="white" />
@@ -102,7 +102,7 @@ export function FloatingCreateMealButton() {
         {/* Botão da Câmera */}
         <AnimatedPressable
           style={cameraButtonStyle}
-          className="absolute w-14 h-14 bg-green-500 rounded-full items-center justify-center shadow-lg"
+          className="absolute w-14 h-14 bg-lime-600 rounded-full items-center justify-center shadow-lg"
           onPress={handleCameraPress}
         >
           <CameraIcon size={24} color="white" />
