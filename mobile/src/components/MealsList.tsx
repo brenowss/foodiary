@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../hooks/useAuth';
+import { useDebounce } from '../hooks/useDebounce';
 import { httpClient } from '../services/httpClient';
 import { MealsListHeader } from './MealsListHeader';
 import { MealSlot } from './MealSlot';
@@ -24,26 +25,45 @@ export function MealsList() {
 
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  const dateParam = useMemo(() => {
-    const year = currentDate.getFullYear();
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-    const day = String(currentDate.getDate()).padStart(2, '0');
+  // Hook de debounce para otimizar requests quando navegar rapidamente entre datas
+  const {
+    currentValue: currentDateValue,
+    debouncedValue: debouncedDate,
+    isDebouncing
+  } = useDebounce(currentDate, 300);
+
+  // Data atual (sem delay) para exibição imediata no DateSwitcher
+  const currentDateParam = useMemo(() => {
+    const year = currentDateValue.getFullYear();
+    const month = String(currentDateValue.getMonth() + 1).padStart(2, '0');
+    const day = String(currentDateValue.getDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
-  }, [currentDate]);
+  }, [currentDateValue]);
+
+  // Data debounced para a query (evita muitas requests)
+  const debouncedDateParam = useMemo(() => {
+    const year = debouncedDate.getFullYear();
+    const month = String(debouncedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(debouncedDate.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }, [debouncedDate]);
 
   const { data: meals, refetch } = useQuery({
-    queryKey: ['meals', dateParam],
+    queryKey: ['meals', debouncedDateParam],
     staleTime: 15_000,
     queryFn: async () => {
       const { data } = await httpClient.get<{ meals: Meal[] }>('/meals', {
         params: {
-          date: dateParam,
+          date: debouncedDateParam,
         },
       });
 
       return data.meals;
     },
+    // Só faz a request quando não estiver debouncing para evitar requests desnecessárias
+    enabled: !isDebouncing,
   });
 
   // Calcular as metas de calorias por refeição
@@ -100,7 +120,7 @@ export function MealsList() {
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={(
         <MealsListHeader
-          currentDate={currentDate}
+          currentDate={currentDateValue}
           meals={meals ?? []}
           onNextDate={handleNextDate}
           onPreviousDate={handlePreviousDate}

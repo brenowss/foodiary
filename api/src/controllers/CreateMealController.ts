@@ -3,10 +3,10 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 import z from 'zod';
 
-import { s3Client } from '../clients/s3Client';
+import { s3Client } from '../clients/s3client';
 import { db } from '../db';
 import { mealsTable } from '../db/schema';
-import { HttpResponse, ProtectedHttpRequest } from '../types/Http';
+import { HttpResponse, ProtectedHttpRequest } from '../types/http';
 import { badRequest, created } from '../utils/http';
 
 const schema = z.object({
@@ -14,9 +14,12 @@ const schema = z.object({
 });
 
 export class CreateMealController {
-  static async handle({ userId, body }: ProtectedHttpRequest): Promise<HttpResponse> {
+  static async handle({
+    userId,
+    body,
+  }: ProtectedHttpRequest): Promise<HttpResponse> {
     const { success, error, data } = schema.safeParse(body);
-    
+
     if (!success) {
       return badRequest({ errors: error.issues });
     }
@@ -30,7 +33,9 @@ export class CreateMealController {
       Key: fileKey,
     });
 
-    const presignedURL = await getSignedUrl(s3Client, command, { expiresIn: 600 });
+    const presignedURL = await getSignedUrl(s3Client, command, {
+      expiresIn: 600,
+    });
 
     const [meal] = await db
       .insert(mealsTable)
