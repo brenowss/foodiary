@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { CreateMealBottomBar } from '../components/CreateMealBottomBar';
+import { FloatingCreateMealButton } from '../components/FloatingCreateMealButton';
 import { HomeHeader } from '../components/HomeHeader';
 import { MealsList } from '../components/MealsList';
 
@@ -9,7 +9,7 @@ export function Home() {
       <HomeHeader />
       <MealsList />
 
-      <CreateMealBottomBar />
+      <FloatingCreateMealButton />
     </View>
   );
 }

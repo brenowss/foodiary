@@ -1,7 +1,7 @@
 import { View } from "react-native";
-import { CreateMealBottomBar } from '../../components/CreateMealBottomBar';
 import { HomeHeader } from '../../components/HomeHeader';
 import { MealsList } from '../../components/MealsList';
+import { FloatingCreateMealButton } from "../../components/FloatingCreateMealButton";
 
 export default function Page() {
   return (
@@ -9,7 +9,7 @@ export default function Page() {
       <HomeHeader />
       <MealsList />
 
-      <CreateMealBottomBar />
+      <FloatingCreateMealButton />
     </View>
   );
 }
