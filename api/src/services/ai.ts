@@ -112,11 +112,13 @@ export async function getMealDetailsFromText({
 type GetMealDetailsFromImageParams = {
   imageURL: string;
   createdAt: Date;
+  description?: string;
 };
 
 export async function getMealDetailsFromImage({
   createdAt,
   imageURL,
+  description,
 }: GetMealDetailsFromImageParams) {
   const response = await client.chat.completions.create({
     model: 'gpt-4.1-mini',
@@ -191,7 +193,9 @@ export async function getMealDetailsFromImage({
             type: 'text',
             text: `Data e horário: ${createdAt.toLocaleString('pt-BR', {
               timeZone: 'America/Sao_Paulo',
-            })}`,
+            })}${
+              description ? `\n\nDescrição do usuário: "${description}"` : ''
+            }`,
           },
           {
             type: 'image_url',

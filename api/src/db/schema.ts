@@ -55,6 +55,7 @@ export const mealsTable = pgTable('meals', {
   name: varchar({ length: 255 }).notNull(),
   key: mealKey('key').notNull().default('extra'),
   icon: varchar({ length: 100 }).notNull(),
+  description: varchar({ length: 500 }),
   foods: json(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });

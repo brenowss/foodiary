@@ -71,6 +71,7 @@ export class ProcessMeal {
         const mealDetails = await getMealDetailsFromImage({
           createdAt: meal.createdAt,
           imageURL,
+          description: meal.description || undefined,
         });
 
         console.log('Got meal details from image', {

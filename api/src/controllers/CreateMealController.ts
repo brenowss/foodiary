@@ -11,6 +11,7 @@ import { badRequest, created } from '../utils/http';
 
 const schema = z.object({
   fileType: z.enum(['audio/m4a', 'image/jpeg']),
+  description: z.string().optional(),
 });
 
 export class CreateMealController {
@@ -46,6 +47,7 @@ export class CreateMealController {
         status: 'uploading',
         icon: '',
         name: '',
+        description: data.description || null,
         foods: [],
       })
       .returning({ id: mealsTable.id });

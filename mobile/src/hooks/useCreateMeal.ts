@@ -17,9 +17,16 @@ export function useCreateMeal({ fileType, onSuccess }: CreateMealParams) {
   const queryClient = useQueryClient();
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: async (uri: string) => {
+    mutationFn: async ({
+      uri,
+      description,
+    }: {
+      uri: string;
+      description?: string;
+    }) => {
       const { data } = await httpClient.post<CreateMealResponse>('/meals', {
         fileType,
+        description,
       });
 
       await FileSystem.uploadAsync(data.uploadURL, uri, {

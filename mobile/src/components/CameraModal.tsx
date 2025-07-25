@@ -2,12 +2,12 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { StatusBar } from 'expo-status-bar';
 import { CameraIcon, CheckIcon, Trash2Icon, XIcon } from 'lucide-react-native';
 import { useRef, useState } from 'react';
-import { Image, Modal, Text, View } from 'react-native';
+import { Image, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { ImageManipulator, SaveFormat, useImageManipulator } from 'expo-image-manipulator';
 
 import { colors } from '../styles/colors';
 import { Button } from './Button';
+import { Input } from './Input';
 import { router } from 'expo-router';
 import { useCreateMeal } from '../hooks/useCreateMeal';
 
@@ -18,6 +18,7 @@ interface ICameraModalProps {
 
 export function CameraModal({ onClose, open }: ICameraModalProps) {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [description, setDescription] = useState<string>('');
   const [permission, requestPermission] = useCameraPermissions();
 
   const cameraRef = useRef<CameraView>(null);
@@ -33,6 +34,7 @@ export function CameraModal({ onClose, open }: ICameraModalProps) {
   function handleCloseModal() {
     onClose();
     setPhotoUri(null);
+    setDescription('');
   }
 
   async function handleTakePicture() {
@@ -67,7 +69,7 @@ export function CameraModal({ onClose, open }: ICameraModalProps) {
     >
       <StatusBar style="light" />
 
-      <View className="bg-black flex-1">
+      <Pressable className="bg-black flex-1" onPress={Keyboard.dismiss}>
         {!permission.granted && (
           <View className="flex-1 items-center justify-center">
             <Text className="text-white text-center px-10 text-base font-sans-regular mb-4">
@@ -93,11 +95,43 @@ export function CameraModal({ onClose, open }: ICameraModalProps) {
               )}
 
               {photoUri && (
-                <Image
-                  source={{ uri: photoUri }}
-                  className="flex-1"
-                  resizeMode="contain"
-                />
+                <>
+                  <Image
+                    source={{ uri: photoUri }}
+                    className="flex-1"
+                    resizeMode="contain"
+                  />
+
+                  <KeyboardAvoidingView
+                    behavior="position"
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+                  >
+                    <View className="p-5 pt-4">
+                      <Input
+                        placeholder="Adicione uma descrição opcional..."
+                        value={description}
+                        onChangeText={setDescription}
+                        multiline
+                        numberOfLines={3}
+                        className="text-white border-gray-600 bg-black"
+                        placeholderTextColor={colors.gray[400]}
+                      />
+                    </View>
+
+                    <View className="p-5 pt-2 items-center gap-8 pb-12 flex-row justify-center">
+                      <Button size="icon" color="dark" onPress={handleDeletePhoto}>
+                        <Trash2Icon size={20} color={colors.gray[500]} />
+                      </Button>
+                      <Button
+                        size="icon"
+                        onPress={() => createMeal({ uri: photoUri, description: description.trim() || undefined })}
+                        loading={isLoading}
+                      >
+                        <CheckIcon size={20} color={colors.black[700]} />
+                      </Button>
+                    </View>
+                  </KeyboardAvoidingView>
+                </>
               )}
 
               {!photoUri && (
@@ -111,25 +145,10 @@ export function CameraModal({ onClose, open }: ICameraModalProps) {
                   <Text className="text-gray-100 text-base font-sans-regular">Tirar foto</Text>
                 </View>
               )}
-
-              {photoUri && (
-                <View className="p-5 pt-6 items-center gap-8 pb-12 flex-row justify-center">
-                  <Button size="icon" color="dark" onPress={handleDeletePhoto}>
-                    <Trash2Icon size={20} color={colors.gray[500]} />
-                  </Button>
-                  <Button
-                    size="icon"
-                    onPress={() => createMeal(photoUri)}
-                    loading={isLoading}
-                  >
-                    <CheckIcon size={20} color={colors.black[700]} />
-                  </Button>
-                </View>
-              )}
             </SafeAreaView>
           </SafeAreaProvider>
         )}
-      </View>
+      </Pressable>
     </Modal>
   );
 }
