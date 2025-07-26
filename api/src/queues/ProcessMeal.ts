@@ -43,6 +43,10 @@ export class ProcessMeal {
       let foods = [];
 
       if (meal.inputType === 'audio') {
+        if (!meal.inputFileKey) {
+          throw new Error('Audio file key is required for audio meals.');
+        }
+
         const audioFileBuffer = await this.downloadAudioFile(meal.inputFileKey);
         const transcription = await transcribeAudio(audioFileBuffer);
 
@@ -62,6 +66,10 @@ export class ProcessMeal {
           fileKey: meal.inputFileKey,
         });
 
+        if (!meal.inputFileKey) {
+          throw new Error('Image file key is required for picture meals.');
+        }
+
         const imageURL = await this.getImageURL(meal.inputFileKey);
 
         console.log('Got image URL', {
@@ -75,6 +83,30 @@ export class ProcessMeal {
         });
 
         console.log('Got meal details from image', {
+          mealDetails,
+        });
+
+        icon = mealDetails.icon;
+        name = mealDetails.name;
+        key = mealDetails.key;
+        foods = mealDetails.foods;
+      }
+
+      if (meal.inputType === 'text') {
+        console.log('Processing text meal', {
+          description: meal.description,
+        });
+
+        if (!meal.description) {
+          throw new Error('Text content is required for text meals.');
+        }
+
+        const mealDetails = await getMealDetailsFromText({
+          createdAt: meal.createdAt,
+          text: meal.description,
+        });
+
+        console.log('Got meal details from text', {
           mealDetails,
         });
 

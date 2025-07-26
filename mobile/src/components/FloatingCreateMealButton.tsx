@@ -1,4 +1,4 @@
-import { CameraIcon, MicIcon, PlusIcon, XIcon } from 'lucide-react-native';
+import { CameraIcon, MicIcon, MessageCircleIcon, PlusIcon, XIcon } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, {
@@ -10,6 +10,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AudioModal } from './AudioModal';
 import { CameraModal } from './CameraModal';
+import { TextModal } from './TextModal';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -19,12 +20,15 @@ export function FloatingCreateMealButton() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
+  const [isTextModalOpen, setIsTextModalOpen] = useState(false);
 
   const rotation = useSharedValue(0);
   const micScale = useSharedValue(0);
   const cameraScale = useSharedValue(0);
+  const textScale = useSharedValue(0);
   const micTranslateY = useSharedValue(0);
   const cameraTranslateY = useSharedValue(0);
+  const textTranslateY = useSharedValue(0);
 
   const toggleExpanded = () => {
     const newExpanded = !isExpanded;
@@ -34,14 +38,18 @@ export function FloatingCreateMealButton() {
       rotation.value = withSpring(45);
       micScale.value = withSpring(1, { damping: 12 });
       cameraScale.value = withTiming(1, { duration: 300 });
+      textScale.value = withTiming(1, { duration: 400 });
       micTranslateY.value = withSpring(-80);
       cameraTranslateY.value = withSpring(-150);
+      textTranslateY.value = withSpring(-220);
     } else {
       rotation.value = withSpring(0);
       micScale.value = withTiming(0, { duration: 200 });
       cameraScale.value = withTiming(0, { duration: 200 });
+      textScale.value = withTiming(0, { duration: 200 });
       micTranslateY.value = withSpring(0);
       cameraTranslateY.value = withSpring(0);
+      textTranslateY.value = withSpring(0);
     }
   };
 
@@ -63,6 +71,13 @@ export function FloatingCreateMealButton() {
     ],
   }));
 
+  const textButtonStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: textScale.value },
+      { translateY: textTranslateY.value },
+    ],
+  }));
+
   const handleMicPress = () => {
     setIsAudioModalOpen(true);
     toggleExpanded();
@@ -70,6 +85,11 @@ export function FloatingCreateMealButton() {
 
   const handleCameraPress = () => {
     setIsCameraModalOpen(true);
+    toggleExpanded();
+  };
+
+  const handleTextPress = () => {
+    setIsTextModalOpen(true);
     toggleExpanded();
   };
 
@@ -108,6 +128,15 @@ export function FloatingCreateMealButton() {
           <CameraIcon size={24} color="white" />
         </AnimatedPressable>
 
+        {/* Botão do Texto */}
+        <AnimatedPressable
+          style={textButtonStyle}
+          className="absolute w-14 h-14 bg-lime-600 rounded-full items-center justify-center shadow-lg"
+          onPress={handleTextPress}
+        >
+          <MessageCircleIcon size={24} color="white" />
+        </AnimatedPressable>
+
         {/* Botão Principal */}
         <AnimatedPressable
           style={mainButtonStyle}
@@ -130,6 +159,11 @@ export function FloatingCreateMealButton() {
       <CameraModal
         open={isCameraModalOpen}
         onClose={() => setIsCameraModalOpen(false)}
+      />
+
+      <TextModal
+        open={isTextModalOpen}
+        onClose={() => setIsTextModalOpen(false)}
       />
     </>
   );

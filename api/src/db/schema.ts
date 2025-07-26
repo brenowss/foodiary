@@ -42,7 +42,11 @@ export const mealKey = pgEnum('meal_key', [
   'extra',
 ]);
 
-export const mealInputType = pgEnum('meal_input_type', ['audio', 'picture']);
+export const mealInputType = pgEnum('meal_input_type', [
+  'audio',
+  'picture',
+  'text',
+]);
 
 export const mealsTable = pgTable('meals', {
   id: uuid().primaryKey().defaultRandom(),
@@ -51,7 +55,7 @@ export const mealsTable = pgTable('meals', {
     .references(() => usersTable.id, { onDelete: 'cascade' }),
   status: mealStatus().notNull(),
   inputType: mealInputType('input_type').notNull(),
-  inputFileKey: varchar('input_file_key', { length: 255 }).notNull(),
+  inputFileKey: varchar('input_file_key', { length: 255 }),
   name: varchar({ length: 255 }).notNull(),
   key: mealKey('key').notNull().default('extra'),
   icon: varchar({ length: 100 }).notNull(),
