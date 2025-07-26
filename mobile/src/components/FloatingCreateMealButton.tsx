@@ -107,7 +107,7 @@ export function FloatingCreateMealButton() {
         className="absolute z-50"
         style={{
           right: 20,
-          bottom: 20 + bottom
+          bottom: 80 + bottom
         }}
       >
         {/* Botão do Microfone */}

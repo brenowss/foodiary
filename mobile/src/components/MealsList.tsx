@@ -116,6 +116,7 @@ export function MealsList() {
     <FlatList
       data={MEAL_SLOTS}
       contentContainerStyle={{ paddingBottom: 80 + bottom + 16 }}
+      className='mt-10'
       keyExtractor={slot => slot.key}
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={(

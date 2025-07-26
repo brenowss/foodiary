@@ -33,3 +33,14 @@ export function formatDate(date: Date): string {
 
   return formattedDate;
 }
+
+// Função específica para formatação da dashboard
+export function formatDateForDashboard(date: Date = new Date()): string {
+  const options: Intl.DateTimeFormatOptions = {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  };
+
+  return new Intl.DateTimeFormat('pt-BR', options).format(date);
+}
