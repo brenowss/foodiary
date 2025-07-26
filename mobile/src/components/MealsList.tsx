@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../hooks/useAuth';
 import { useDebounce } from '../hooks/useDebounce';
@@ -11,12 +11,12 @@ import { MealSlot } from './MealSlot';
 import { calculateMealTargets } from '../utils/calculateMealTargets';
 import { type Meal, type MealKey } from '../types/meal';
 
-const MEAL_SLOTS: { key: MealKey; name: string; icon: string }[] = [
-  { key: 'breakfast', name: 'Café da Manhã', icon: '🌅' },
-  { key: 'lunch', name: 'Almoço', icon: '🍽️' },
-  { key: 'snack', name: 'Lanche', icon: '🍪' },
-  { key: 'dinner', name: 'Jantar', icon: '🌙' },
-  { key: 'extra', name: 'Extra', icon: '➕' },
+const MEAL_SLOTS: { key: MealKey; name: string; icon: any }[] = [
+  { key: 'breakfast', name: 'Café da Manhã', icon: require('../assets/meal-icons/breakfast.png') },
+  { key: 'lunch', name: 'Almoço', icon: require('../assets/meal-icons/lunch.png') },
+  { key: 'snack', name: 'Lanche', icon: require('../assets/meal-icons/snack.png') },
+  { key: 'dinner', name: 'Jantar', icon: require('../assets/meal-icons/dinner.png') },
+  { key: 'extra', name: 'Extra', icon: require('../assets/meal-icons/extra.png') },
 ];
 
 export function MealsList() {

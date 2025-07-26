@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, Image } from 'react-native';
 import { MealCard } from './MealCard';
 import { type Meal, type MealKey } from '../types/meal';
 
 interface MealSlotProps {
-  slot: { key: MealKey; name: string; icon: string };
+  slot: { key: MealKey; name: string; icon: any };
   meals: Meal[];
   targetCalories: number;
 }
@@ -35,7 +35,7 @@ export function MealSlot({ slot, meals, targetCalories }: MealSlotProps) {
       {/* Header do Slot */}
       <View className="flex-row items-center justify-between mb-3">
         <View className="flex-row items-center">
-          <Text className="text-2xl mr-2">{slot.icon}</Text>
+          <Image source={slot.icon} style={{ width: 24, height: 24, marginRight: 8 }} />
           <Text className="text-gray-800 text-lg font-sans-medium">
             {slot.name}
           </Text>
@@ -71,7 +71,7 @@ export function MealSlot({ slot, meals, targetCalories }: MealSlotProps) {
       ) : (
         <View className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 items-center justify-center min-h-[100px]">
           <View className="mb-2">
-            <Text className="text-3xl">{slot.icon}</Text>
+            <Image source={slot.icon} style={{ width: 32, height: 32 }} />
           </View>
           <Text className="text-blue-600 text-base font-sans-medium text-center">
             Adicione sua primeira refeição

@@ -44,7 +44,7 @@ export function MealsListHeader({
   }, [meals]);
 
   return (
-    <View>
+    <View className='mb-6'>
       <DateSwitcher
         currentDate={currentDate}
         onNextDate={onNextDate}
